@@ -1,0 +1,5 @@
+.vscode/
+objs/
+*.exe
+*.out
+leak_info.txt
