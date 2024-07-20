@@ -14,7 +14,7 @@ out vec4 finalColor;
 
 #define SHEET_CELL_SIZE 32
 #define SHEET_WIDTH 16
-#define SHEET_UV_SCALE 0
+#define SHEET_UV_SCALE 1.0 / SHEET_WIDTH
 
 #define ZONE_EMPTY        46 // '.'
 #define ZONE_WALL         35 // '#'
@@ -30,16 +30,8 @@ out vec4 finalColor;
 uniform int gridWidth;
 uniform int gridHeight;
 uniform sampler2D zoneNeighs;
-
-uniform sampler2D wallSheet;
-uniform sampler2D fakewallSheet;
-uniform sampler2D deathwallSheet;
-uniform sampler2D colorwallSheet;
-uniform sampler2D teleporterSheet;
-uniform sampler2D checkpointSheet;
-uniform sampler2D endpointSheet;
-uniform sampler2D keywallSheet;
-uniform sampler2D triggerpointSheet;
+uniform sampler2D zoneSheet;
+uniform float activeZoneType;
 
 void main() {
 	vec2 zoneIdx = (floor(fragTexCoord) + 0.5) / vec2(gridWidth, gridHeight);
@@ -50,46 +42,11 @@ void main() {
 	vec2 sheetUV = fract(fragTexCoord) * SHEET_UV_SCALE;
 
 	int type = int(texture(texture0, zoneIdx).r * 255);
-	switch (type) {
-		default:
-		case ZONE_EMPTY:
-			finalColor = vec4(0.0);
-			break;
 
-		case ZONE_WALL:
-			finalColor = texture(wallSheet, sheetOffset + sheetUV);
-			break;
-
-		case ZONE_FAKEWALL:
-			finalColor = texture(fakewallSheet, sheetOffset + sheetUV);
-			break;
-
-		case ZONE_DEATHWALL:
-			finalColor = texture(deathwallSheet, sheetOffset + sheetUV);
-			break;
-
-		case ZONE_COLORWALL:
-			finalColor = texture(colorwallSheet, sheetOffset + sheetUV);
-			break;
-
-		case ZONE_TELEPORTER:
-			finalColor = texture(teleporterSheet, sheetOffset + sheetUV);
-			break;
-
-		case ZONE_CHECKPOINT:
-			finalColor = texture(checkpointSheet, sheetOffset + sheetUV);
-			break;
-
-		case ZONE_ENDPOINT:
-			finalColor = texture(endpointSheet, sheetOffset + sheetUV);
-			break;
-
-		case ZONE_KEYWALL:
-			finalColor = texture(keywallSheet, sheetOffset + sheetUV);
-			break;
-
-		case ZONE_TRIGGERPOINT:
-			finalColor = texture(triggerpointSheet, sheetOffset + sheetUV);
-			break;
+	if (int(activeZoneType * 255) == type) {
+		finalColor = texture(zoneSheet, sheetOffset + sheetUV);
+	} else {
+		finalColor = vec4(0, 0, 0, 0);
 	}
+
 }
