@@ -9,7 +9,8 @@ int main(void) {
 	Game game = CreateGame();
 	game.editor.level.player = &game.player;
 	// EditLevel(&game.editor, "ressources/levels/Testings/thirdSave.dat");
-	CreateLevel(&game.editor, 1024, 1024);
+	CreateLevel(&game.editor, 64, 64);
+	// CreateLevel(&game.editor, 1024, 1024);
 	// CreateLevel(&game.editor, 8192, 8192);
 
 	//----------------------------------------
@@ -41,7 +42,7 @@ int main(void) {
 		BeginMode2D(gameCamera);
 
 		DisplayGameWorld(&game);
-		
+
 		EndMode2D();
 		//----------------------------------------
 		// End World Drawing Part

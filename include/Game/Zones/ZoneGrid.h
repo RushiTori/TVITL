@@ -12,7 +12,14 @@
 typedef struct ZoneGrid {
 	uint16_t width;
 	uint16_t height;
-	Zone* zones;
+
+	ZoneType* zoneTypes;
+	uint8_t* zoneNeighs;
+	uint16_t* zoneGroupIDs;
+
+	RenderTexture2D zoneTypesTex;
+	RenderTexture2D zoneNeighsTex;
+
 	DynamicArray(ZoneGroup) groups;
 } ZoneGrid;
 
@@ -24,7 +31,7 @@ void SerializeZoneGrid(const ZoneGrid* grid, ByteBuffer* buffer);
 
 ZoneType GetZoneType(const ZoneGrid* grid, uint32_t x, uint32_t y);
 
-void SetZoneType(const ZoneGrid* grid, uint32_t x, uint32_t y, ZoneType type);
+void SetZoneType(ZoneGrid* grid, uint32_t x, uint32_t y, ZoneType type);
 void SetPlayerCollidedZone(ZoneGrid* grid, uint32_t x, uint32_t y);
 
 void DisplayZoneGrid(const ZoneGrid* grid);

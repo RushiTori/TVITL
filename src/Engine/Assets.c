@@ -4,9 +4,24 @@
 
 #define ZONE_SHEETS_DIR "ressources/images/zones/"
 #define UI_SHEETS_DIR "ressources/images/UI/"
+#define SHADERS_DIR "ressources/shaders/"
 
 Texture2D ZoneSheets[0x100] = {0};
 Texture2D BrushButtonSheet = {0};
+
+Shader ZoneGridShader;
+static uint32_t gridWidthLoc;
+static uint32_t gridHeightLoc;
+static uint32_t zoneNeighsLoc;
+static uint32_t wallSheetLoc;
+static uint32_t fakewallSheetLoc;
+static uint32_t deathwallSheetLoc;
+static uint32_t colorwallSheetLoc;
+static uint32_t teleporterSheetLoc;
+static uint32_t checkpointSheetLoc;
+static uint32_t endpointSheetLoc;
+static uint32_t keywallSheetLoc;
+static uint32_t triggerpointSheetLoc;
 
 void LoadAssets() {
 	ZoneSheets[ZONE_WALL] = LoadTexture(ZONE_SHEETS_DIR "Wall.png");
@@ -20,6 +35,20 @@ void LoadAssets() {
 	ZoneSheets[ZONE_TRIGGERPOINT] = LoadTexture(ZONE_SHEETS_DIR "TriggerPoint.png");
 
 	BrushButtonSheet = LoadTexture(UI_SHEETS_DIR "BrushButtons.png");
+
+	ZoneGridShader = LoadShader(NULL, SHADERS_DIR "ZoneGrid.fs");
+	gridWidthLoc = GetShaderLocation(ZoneGridShader, "gridWidth");
+	gridHeightLoc = GetShaderLocation(ZoneGridShader, "gridHeight");
+	zoneNeighsLoc = GetShaderLocation(ZoneGridShader, "zoneNeighs");
+	wallSheetLoc = GetShaderLocation(ZoneGridShader, "wallSheet");
+	fakewallSheetLoc = GetShaderLocation(ZoneGridShader, "fakewallSheet");
+	deathwallSheetLoc = GetShaderLocation(ZoneGridShader, "deathwallSheet");
+	colorwallSheetLoc = GetShaderLocation(ZoneGridShader, "colorwallSheet");
+	teleporterSheetLoc = GetShaderLocation(ZoneGridShader, "teleporterSheet");
+	checkpointSheetLoc = GetShaderLocation(ZoneGridShader, "checkpointSheet");
+	endpointSheetLoc = GetShaderLocation(ZoneGridShader, "endpointSheet");
+	keywallSheetLoc = GetShaderLocation(ZoneGridShader, "keywallSheet");
+	triggerpointSheetLoc = GetShaderLocation(ZoneGridShader, "triggerpointSheet");
 }
 
 void UnloadAssets() {
@@ -33,6 +62,23 @@ void UnloadAssets() {
 	UnloadTexture(ZoneSheets[ZONE_KEYWALL]);
 	UnloadTexture(ZoneSheets[ZONE_TRIGGERPOINT]);
 	UnloadTexture(BrushButtonSheet);
+	UnloadShader(ZoneGridShader);
+}
+
+void PrepareZoneGridShader(Texture2D neighs) {
+	SetShaderValue(ZoneGridShader, gridWidthLoc, &neighs.width, SHADER_UNIFORM_INT);
+	SetShaderValue(ZoneGridShader, gridHeightLoc, &neighs.height, SHADER_UNIFORM_INT);
+	SetShaderValueTexture(ZoneGridShader, zoneNeighsLoc, neighs);
+	SetShaderValueTexture(ZoneGridShader, wallSheetLoc, ZoneSheets[ZONE_WALL]);
+	SetShaderValueTexture(ZoneGridShader, fakewallSheetLoc, ZoneSheets[ZONE_FAKEWALL]);
+	
+	SetShaderValueTexture(ZoneGridShader, deathwallSheetLoc, ZoneSheets[ZONE_DEATHWALL]);
+	SetShaderValueTexture(ZoneGridShader, colorwallSheetLoc, ZoneSheets[ZONE_COLORWALL]);
+	SetShaderValueTexture(ZoneGridShader, teleporterSheetLoc, ZoneSheets[ZONE_TELEPORTER]);
+	SetShaderValueTexture(ZoneGridShader, checkpointSheetLoc, ZoneSheets[ZONE_CHECKPOINT]);
+	SetShaderValueTexture(ZoneGridShader, endpointSheetLoc, ZoneSheets[ZONE_ENDPOINT]);
+	SetShaderValueTexture(ZoneGridShader, keywallSheetLoc, ZoneSheets[ZONE_KEYWALL]);
+	SetShaderValueTexture(ZoneGridShader, triggerpointSheetLoc, ZoneSheets[ZONE_TRIGGERPOINT]);
 }
 
 Rectangle GetZoneTexOffsets(uint8_t zoneNeighbors, bool isSheetTrimmed) {

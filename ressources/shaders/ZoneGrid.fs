@@ -14,7 +14,7 @@ out vec4 finalColor;
 
 #define SHEET_CELL_SIZE 32
 #define SHEET_WIDTH 16
-#define SHEET_UV_SCALE 0
+#define SHEET_UV_SCALE 1.0 / SHEET_WIDTH
 
 #define ZONE_EMPTY        46 // '.'
 #define ZONE_WALL         35 // '#'
@@ -50,7 +50,7 @@ void main() {
 	vec2 sheetUV = fract(fragTexCoord) * SHEET_UV_SCALE;
 
 	int type = int(texture(texture0, zoneIdx).r * 255);
-	switch (type) {
+	/*switch (type) {
 		default:
 		case ZONE_EMPTY:
 			finalColor = vec4(0.0);
@@ -91,5 +91,29 @@ void main() {
 		case ZONE_TRIGGERPOINT:
 			finalColor = texture(triggerpointSheet, sheetOffset + sheetUV);
 			break;
+	}*/
+
+	if (type == ZONE_WALL) {
+		finalColor = texture(wallSheet, sheetOffset + sheetUV);
+	} else if (type == ZONE_FAKEWALL) {
+		finalColor = texture(fakewallSheet, sheetOffset + sheetUV);
+	} else if (type == ZONE_DEATHWALL) {
+		finalColor = texture(deathwallSheet, sheetOffset + sheetUV);
+	} else if (type == ZONE_COLORWALL) {
+		finalColor = texture(colorwallSheet, sheetOffset + sheetUV);
+	} else if (type == ZONE_TELEPORTER) {
+		finalColor = texture(teleporterSheet, sheetOffset + sheetUV);
+	} else if (type == ZONE_CHECKPOINT) {
+		finalColor = texture(checkpointSheet, sheetOffset + sheetUV);
+	} else if (type == ZONE_ENDPOINT) {
+		finalColor = texture(endpointSheet, sheetOffset + sheetUV);
+	} else if (type == ZONE_KEYWALL) {
+		finalColor = texture(keywallSheet, sheetOffset + sheetUV);
+	} else if (type == ZONE_TRIGGERPOINT) {
+		finalColor = texture(triggerpointSheet, sheetOffset + sheetUV);
+	} else {
+		finalColor = vec4(1, 1, 1, 1);
 	}
+
+	finalColor *= fragColor;
 }

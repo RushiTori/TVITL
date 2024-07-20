@@ -37,18 +37,41 @@ ZoneGrid CreateZoneGridEmpty(uint32_t width, uint32_t height) {
 	grid.width = width;
 	grid.height = height;
 
-	grid.zones = malloc(width * height * sizeof(Zone));
-	if (!grid.zones) {
-		TraceLog(LOG_FATAL, "Couldn't allocate grid.zones\n");
+	uint32_t zoneCount = width * height;
+
+	grid.zoneTypes = malloc(zoneCount * sizeof(ZoneType));
+	if (!grid.zoneTypes) {
+		TraceLog(LOG_FATAL, "Couldn't allocate grid.zoneTypes\n");
+		return (ZoneGrid){0};
+	}
+	memset(grid.zoneTypes, ZONE_EMPTY, zoneCount * sizeof(ZoneType));
+
+	grid.zoneNeighs = calloc(zoneCount, sizeof(uint8_t));
+	if (!grid.zoneNeighs) {
+		TraceLog(LOG_FATAL, "Couldn't allocate grid.zoneNeighs\n");
 		return (ZoneGrid){0};
 	}
 
-	Zone emptyZone = {0};
-	emptyZone.type = ZONE_EMPTY;
-
-	for (uint32_t i = 0; i < (width * height); i++) {
-		grid.zones[i] = emptyZone;
+	grid.zoneGroupIDs = calloc(zoneCount, sizeof(uint16_t));
+	if (!grid.zoneGroupIDs) {
+		TraceLog(LOG_FATAL, "Couldn't allocate grid.zoneGroupIDs\n");
+		return (ZoneGrid){0};
 	}
+
+	grid.zoneTypesTex = LoadRenderTexture(width, height);
+	BeginTextureMode(grid.zoneTypesTex);
+	ClearBackground((Color){
+		.r = ZONE_EMPTY,
+		.g = ZONE_EMPTY,
+		.b = ZONE_EMPTY,
+		.a = 0xFF,
+	});
+	EndTextureMode();
+
+	grid.zoneNeighsTex = LoadRenderTexture(width, height);
+	BeginTextureMode(grid.zoneNeighsTex);
+	ClearBackground(BLACK);
+	EndTextureMode();
 
 	grid.groups.data = DefaultZoneGroups();
 	grid.groups.size = DEFAULT_ZONE_GROUPS_SIZE;
@@ -61,16 +84,29 @@ ZoneGrid CreateZoneGridFromFileData(ByteBuffer* buffer) {
 	ZoneGrid grid = {0};
 	grid.width = ByteBufferRead(uint16_t, buffer);
 	grid.height = ByteBufferRead(uint16_t, buffer);
-	uint32_t zonesLen = grid.width * grid.height;
+	uint32_t zoneCount = grid.width * grid.height;
 
-	grid.zones = malloc(grid.width * grid.height * sizeof(Zone));
-	if (!grid.zones) {
-		TraceLog(LOG_FATAL, "Couldn't allocate grid.zones\n");
+	grid.zoneTypes = malloc(zoneCount * sizeof(ZoneType));
+	if (!grid.zoneTypes) {
+		TraceLog(LOG_FATAL, "Couldn't allocate grid.zoneTypes\n");
+		return (ZoneGrid){0};
+	}
+	memset(grid.zoneTypes, ZONE_EMPTY, zoneCount * sizeof(ZoneType));
+
+	grid.zoneNeighs = malloc(zoneCount * sizeof(uint8_t));
+	if (!grid.zoneNeighs) {
+		TraceLog(LOG_FATAL, "Couldn't allocate grid.zoneNeighs\n");
+		return (ZoneGrid){0};
+	}
+
+	grid.zoneGroupIDs = malloc(zoneCount * sizeof(uint16_t));
+	if (!grid.zoneGroupIDs) {
+		TraceLog(LOG_FATAL, "Couldn't allocate grid.zoneGroupIDs\n");
 		return (ZoneGrid){0};
 	}
 
 	uint32_t zoneIdx = 0;
-	while (zoneIdx < zonesLen && buffer->dataPtr < buffer->capacity) {
+	while (zoneIdx < zoneCount && buffer->dataPtr < buffer->capacity) {
 		Zone zoneData = {0};
 
 		uint32_t zoneCount = ByteBufferRead(uint16_t, buffer);
@@ -84,14 +120,40 @@ ZoneGrid CreateZoneGridFromFileData(ByteBuffer* buffer) {
 
 		zoneData.type = ByteBufferRead(ZoneType, buffer);
 		zoneData.groupID = ByteBufferRead(uint16_t, buffer);
-		for (uint32_t i = 0; i < zoneCount && zoneIdx < zonesLen; i++) {
-			grid.zones[zoneIdx++] = zoneData;
+		for (uint32_t i = 0; i < zoneCount && zoneIdx < zoneCount; i++, zoneIdx++) {
+			grid.zoneTypes[zoneIdx] = zoneData.type;
+			grid.zoneGroupIDs[zoneIdx] = zoneData.groupID;
 		}
 	}
 
 	for (uint32_t i = 0; i < (grid.width * grid.height); i++) {
-		grid.zones[i].neighs = GetZoneNeighbors(&grid, i % grid.width, i / grid.width);
+		grid.zoneNeighs[i] = GetZoneNeighbors(&grid, i % grid.width, i / grid.width);
 	}
+
+	Texture2D bufferTex;
+	{
+		Image tmpImg;
+		tmpImg.width = grid.width;
+		tmpImg.height = grid.height;
+		tmpImg.mipmaps = 1;
+		tmpImg.format = PIXELFORMAT_UNCOMPRESSED_GRAYSCALE;
+		tmpImg.data = grid.zoneTypes;
+		bufferTex = LoadTextureFromImage(tmpImg);
+	}
+
+	grid.zoneTypesTex = LoadRenderTexture(grid.width, grid.height);
+	BeginTextureMode(grid.zoneTypesTex);
+	DrawTexture(bufferTex, 0, 0, WHITE);
+	EndTextureMode();
+
+	UpdateTexture(bufferTex, grid.zoneNeighs);
+
+	grid.zoneNeighsTex = LoadRenderTexture(grid.width, grid.height);
+	BeginTextureMode(grid.zoneNeighsTex);
+	DrawTexture(bufferTex, 0, 0, WHITE);
+	EndTextureMode();
+
+	UnloadTexture(bufferTex);
 
 	// WIP
 	grid.groups.data = DefaultZoneGroups();
@@ -102,11 +164,15 @@ ZoneGrid CreateZoneGridFromFileData(ByteBuffer* buffer) {
 }
 
 void FreeZoneGrid(ZoneGrid* grid) {
-	free(grid->zones);
-	for (uint32_t i = 0; i < grid->groups.size; i++) {
-		FreeZoneGroup(grid->groups.data + i);
-	}
+	free(grid->zoneTypes);
+	free(grid->zoneNeighs);
+	free(grid->zoneGroupIDs);
+
+	MapDynamicArray(&grid->groups, FreeZoneGroup);
 	FreeDynamicArray(&grid->groups);
+
+	UnloadRenderTexture(grid->zoneTypesTex);
+	UnloadRenderTexture(grid->zoneNeighsTex);
 }
 
 void SerializeZoneGrid(const ZoneGrid* grid, ByteBuffer* buffer) {
@@ -116,14 +182,14 @@ void SerializeZoneGrid(const ZoneGrid* grid, ByteBuffer* buffer) {
 
 	uint32_t zonesLen = grid->width * grid->height;
 	for (uint32_t i = 0; i < zonesLen; i++) {
-		ZoneType typeData = grid->zones[i].type;
-		uint16_t groupIDdata = grid->zones[i].groupID;
-		bool evilData = grid->zones[i].isEvil;
+		ZoneType typeData = grid->zoneTypes[i];
+		uint16_t groupIDdata = grid->zoneGroupIDs[i];
+		bool evilData = false;	// WIP : modify the save file format
 
 		uint32_t zoneCount = 1;
 
-		while ((i < zonesLen) && (grid->zones[i].type == typeData) && (grid->zones[i].groupID == groupIDdata) &&
-			   (grid->zones[i].isEvil == evilData)) {
+		while ((i < zonesLen) && (grid->zoneTypes[i] == typeData) && (grid->zoneGroupIDs[i] == groupIDdata) &&
+			   (false == evilData)) {
 			i++;
 			zoneCount++;
 		}
@@ -147,105 +213,83 @@ void SerializeZoneGrid(const ZoneGrid* grid, ByteBuffer* buffer) {
 
 ZoneType GetZoneType(const ZoneGrid* grid, uint32_t x, uint32_t y) {
 	if (x >= grid->width || y >= grid->height) return ZONE_EMPTY;
-	return grid->zones[GetIndex1D(x, y, grid->width)].type;
+	return grid->zoneTypes[GetIndex1D(x, y, grid->width)];
 }
 
-void SetZoneType(const ZoneGrid* grid, uint32_t x, uint32_t y, ZoneType type) {
+void SetZoneType(ZoneGrid* grid, uint32_t x, uint32_t y, ZoneType type) {
 	if (x >= grid->width || y >= grid->height) return;
-	grid->zones[GetIndex1D(x, y, grid->width)].type = type;
+	grid->zoneTypes[GetIndex1D(x, y, grid->width)] = type;
 
+	uint32_t pixelX = x;
+	uint32_t pixelY = grid->height - 1 - y;
+	BeginTextureMode(grid->zoneTypesTex);
+	DrawPixel(pixelX, pixelY,
+			  (Color){
+				  .r = type,
+				  .g = type,
+				  .b = type,
+				  .a = 0xFF,
+			  });
+	printf("drew : %u at {%u, %u}.\n", type, pixelX, pixelY);
+	EndTextureMode();
+
+	BeginTextureMode(grid->zoneNeighsTex);
 	for (int32_t j = -1; j <= 1; j++) {
 		uint32_t nY = y + j;
 		if (nY >= grid->height) continue;
 		for (int32_t i = -1; i <= 1; i++) {
 			uint32_t nX = x + i;
 			if (nX >= grid->width) continue;
-			grid->zones[GetIndex1D(nX, nY, grid->width)].neighs = GetZoneNeighbors(grid, nX, nY);
+
+			uint8_t neighs = GetZoneNeighbors(grid, nX, nY);
+			grid->zoneNeighs[GetIndex1D(nX, nY, grid->width)] = neighs;
+
+			pixelX = nX;
+			pixelY = grid->height - 1 - nY;
+			DrawPixel(pixelX, pixelY,
+					  (Color){
+						  .r = neighs,
+						  .g = neighs,
+						  .b = neighs,
+						  .a = 0xFF,
+					  });
 		}
 	}
+	EndTextureMode();
 }
 
 void SetPlayerCollidedZone(ZoneGrid* grid, uint32_t x, uint32_t y) {
 	if (x >= grid->width || y >= grid->height) return;
-	grid->groups.data[grid->zones[GetIndex1D(x, y, grid->width)].groupID].hasCollided = true;
-}
-
-static inline void DrawZone(Vector2 source, Vector2 dest) {
-	const float xOverWidth = source.x / 512;
-	const float yOverHeight = source.y / 512;
-	const float xPlusWidthOver = (source.x + WORLD_SCALE) / 512;
-	const float yPlusHeightOver = (source.y + WORLD_SCALE) / 512;
-	const float destRight = dest.x + WORLD_SCALE;
-	const float destBottom = dest.y + WORLD_SCALE;
-
-	// Top-left corner for texture and quad
-	rlTexCoord2f(xOverWidth, yOverHeight);
-	rlVertex2f(dest.x, dest.y);
-
-	// Bottom-left corner for texture and quad
-	rlTexCoord2f(xOverWidth, yPlusHeightOver);
-	rlVertex2f(dest.x, destBottom);
-
-	// Bottom-right corner for texture and quad
-	rlTexCoord2f(xPlusWidthOver, yPlusHeightOver);
-	rlVertex2f(destRight, destBottom);
-
-	// Top-right corner for texture and quad
-	rlTexCoord2f(xPlusWidthOver, yOverHeight);
-	rlVertex2f(destRight, dest.y);
+	grid->groups.data[grid->zoneGroupIDs[GetIndex1D(x, y, grid->width)]].hasCollided = true;
 }
 
 void DisplayZoneGrid(const ZoneGrid* grid) {
+	// WIP
 	DrawRectangle(0, 0, grid->width * WORLD_SCALE, grid->height * WORLD_SCALE, GRAY);
+	BeginShaderMode(ZoneGridShader);
+	PrepareZoneGridShader(grid->zoneNeighsTex.texture);
 
-	const Vector2 startPos = GetScreenToGameTile((Vector2){
-		.x = 0,
-		.y = 0,
-	});
-
-	const Vector2 endPos = GetScreenToGameTile((Vector2){
-		.x = GetScreenWidth(),
-		.y = GetScreenHeight(),
-	});
-
-	const uint32_t startX = Clamp(startPos.x, 0, grid->width - 1);
-	const uint32_t startY = Clamp(startPos.y, 0, grid->height - 1);
-
-	const uint32_t endX = Clamp(endPos.x, 0, grid->width - 1);
-	const uint32_t endY = Clamp(endPos.y, 0, grid->height - 1);
-
-	Vector2 drawDest = (Vector2){
-		.x = 0,
-		.y = startY * WORLD_SCALE,
-	};
-
-	uint32_t texID = -1;
-
+	rlSetTexture(grid->zoneTypesTex.texture.id);
 	rlBegin(RL_QUADS);
 	rlColor4ub(0xFF, 0xFF, 0xFF, 0xFF);
 	rlNormal3f(0.0f, 0.0f, 1.0f);
 
-	for (register uint32_t y = startY; y <= (uint32_t)endY; y++, drawDest.y += WORLD_SCALE) {
-		drawDest.x = startX * WORLD_SCALE;
-		for (register uint32_t x = startX; x <= (uint32_t)endX; x++, drawDest.x += WORLD_SCALE) {
-			register uint32_t idx = GetIndex1D(x, y, grid->width);
-			register ZoneType type = grid->zones[idx].type;
-			if (type == ZONE_EMPTY) continue;
+	rlTexCoord2f(0, 0);
+	rlVertex2f(0, 0);
 
-			register uint8_t neighs = grid->zones[idx].neighs;
+	rlTexCoord2f(0, grid->height);
+	rlVertex2f(0, WORLD_SCALE * grid->height);
 
-			register Vector2 drawSource = (Vector2){
-				.x = WORLD_SCALE * (neighs & 0b00001111),
-				.y = WORLD_SCALE * (neighs >> 4),
-			};
+	rlTexCoord2f(grid->width, grid->height);
+	rlVertex2f(WORLD_SCALE * grid->width, WORLD_SCALE * grid->height);
 
-			if (ZoneSheets[type].id != texID) rlSetTexture(texID = ZoneSheets[type].id);
+	rlTexCoord2f(grid->width, 0);
+	rlVertex2f(WORLD_SCALE * grid->width, 0);
 
-			DrawZone(drawSource, drawDest);
-		}
-	}
 	rlEnd();
 	rlSetTexture(0);
+
+	EndShaderMode();
 }
 
 void UpdateZoneGrid(ZoneGrid* grid) {
