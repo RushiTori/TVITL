@@ -1,0 +1,6 @@
+ZoneGrid header:
+	u32: gridW
+	u32: gridH
+
+ZoneGrid Body:
+	u8 * gridW * gridH : zones
