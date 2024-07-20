@@ -13,4 +13,6 @@ void UnloadAssets();
 
 void PrepareZoneGridShader(Texture2D neighs, ZoneType zoneType);
 
+Rectangle GetZoneTexOffsets(uint8_t zoneNeighbors, bool isSheetTrimmed);
+
 #endif	// ASSETS_H
