@@ -263,16 +263,9 @@ void SetPlayerCollidedZone(ZoneGrid* grid, uint32_t x, uint32_t y) {
 	grid->groups.data[grid->zoneGroupIDs[GetIndex1D(x, y, grid->width)]].hasCollided = true;
 }
 
-void DisplayZoneGrid(const ZoneGrid* grid) {
-	// WIP
-	DrawRectangle(0, 0, grid->width * WORLD_SCALE, grid->height * WORLD_SCALE, GRAY);
-	BeginShaderMode(ZoneGridShader);
-	PrepareZoneGridShader(grid->zoneNeighsTex.texture);
-
+static inline void DrawZoneGridPlane(const ZoneGrid* grid) {
 	rlSetTexture(grid->zoneTypesTex.texture.id);
 	rlBegin(RL_QUADS);
-	rlColor4ub(0xFF, 0xFF, 0xFF, 0xFF);
-	rlNormal3f(0.0f, 0.0f, 1.0f);
 
 	rlTexCoord2f(0, 0);
 	rlVertex2f(0, 0);
@@ -288,8 +281,22 @@ void DisplayZoneGrid(const ZoneGrid* grid) {
 
 	rlEnd();
 	rlSetTexture(0);
+}
 
-	EndShaderMode();
+void DisplayZoneGrid(const ZoneGrid* grid) {
+	static const ZoneType zoneTypes[ZONE_TYPE_COUNT] = {
+		ZONE_WALL,		 ZONE_FAKEWALL, ZONE_DEATHWALL, ZONE_COLORWALL,	   ZONE_TELEPORTER,
+		ZONE_CHECKPOINT, ZONE_ENDPOINT, ZONE_KEYWALL,	ZONE_TRIGGERPOINT,
+	};
+
+	DrawRectangle(0, 0, grid->width * WORLD_SCALE, grid->height * WORLD_SCALE, GRAY);
+
+	for (uint32_t i = 0; i < ZONE_TYPE_COUNT; i++) {
+		BeginShaderMode(ZoneGridShader);
+		PrepareZoneGridShader(grid->zoneNeighsTex.texture, zoneTypes[i]);
+		DrawZoneGridPlane(grid);
+		EndShaderMode();
+	}
 }
 
 void UpdateZoneGrid(ZoneGrid* grid) {
