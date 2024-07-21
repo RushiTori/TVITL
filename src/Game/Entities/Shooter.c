@@ -22,20 +22,22 @@ void SetShooterpath(Shooter* shooter, EntityPath* path) {
 }
 
 void DisplayShooter(const Shooter* shooter) {
-	Color shooterCol;
-	shooterCol.r = shooter->hasRed * 0xFF;
-	shooterCol.g = shooter->hasGreen * 0xFF;
-	shooterCol.b = shooter->hasBlue * 0xFF;
-	shooterCol.a = 0xFF;
+	//WIP
+	static const Rectangle shooterSource = (Rectangle){
+		.x = 0,
+		.y = 32,
+		.width = 32,
+		.height = 32,
+	};
 
-	DrawRectangleRec(
-		(Rectangle){
-			.x = shooter->pos.x - (SHOOTER_SIZE / 2),
-			.y = shooter->pos.y - (SHOOTER_SIZE / 2),
-			.width = SHOOTER_SIZE,
-			.height = SHOOTER_SIZE,
-		},
-		shooterCol);
+	const Rectangle shooterBody = (Rectangle){
+		.x = shooter->pos.x - (SHOOTER_SIZE / 2),
+		.y = shooter->pos.y - (SHOOTER_SIZE / 2),
+		.width = SHOOTER_SIZE,
+		.height = SHOOTER_SIZE,
+	};
+	
+	DrawTexturePro(EntitySheet, shooterSource, shooterBody, (Vector2){0.5, 0.5}, shooter->angle * RAD2DEG, WHITE);
 }
 
 void UpdateShooter(Shooter* shooter, Level* level) {

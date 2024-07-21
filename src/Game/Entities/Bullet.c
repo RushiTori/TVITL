@@ -1,4 +1,5 @@
 #include "Bullet.h"
+#include "Assets.h"
 
 Bullet CreateBullet(Vector2 pos, float angle, float speed) {
 	Bullet bullet = {0};
@@ -10,7 +11,22 @@ Bullet CreateBullet(Vector2 pos, float angle, float speed) {
 
 void DisplayBullet(const Bullet* bullet) {
 	// WIP
-	DrawCircleV(bullet->pos, BULLET_RADIUS, BLUE);
+	
+	static const Rectangle bulletSource = (Rectangle){
+		.x = 0,
+		.y = 64,
+		.width = 32,
+		.height = 32,
+	};
+
+	const Rectangle bulletBody = (Rectangle){
+		.x = bullet->pos.x - (BULLET_RADIUS / 2),
+		.y = bullet->pos.y - (BULLET_RADIUS / 2),
+		.width = BULLET_RADIUS,
+		.height = BULLET_RADIUS,
+	};
+	
+	DrawTexturePro(EntitySheet, bulletSource, bulletBody, (Vector2){0}, 0, WHITE);
 }
 
 void UpdateBullet(Bullet* bullet) {

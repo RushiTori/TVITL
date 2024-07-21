@@ -2,22 +2,26 @@
 
 #include "ZoneType.h"
 
-#define ZONE_SHEETS_DIR "ressources/images/zones/"
+#define ZONES_SHEETS_DIR "ressources/images/Zones/"
+#define ENTITIES_SHEETS_DIR "ressources/images/Entities/"
 #define UI_SHEETS_DIR "ressources/images/UI/"
 
 Texture2D ZoneSheets[0x100] = {0};
+Texture2D EntitySheet = {0};
 Texture2D BrushButtonSheet = {0};
 
 void LoadAssets() {
-	ZoneSheets[ZONE_WALL] = LoadTexture(ZONE_SHEETS_DIR "Wall.png");
-	ZoneSheets[ZONE_FAKEWALL] = LoadTexture(ZONE_SHEETS_DIR "FakeWall.png");
-	ZoneSheets[ZONE_DEATHWALL] = LoadTexture(ZONE_SHEETS_DIR "DeathWall.png");
-	ZoneSheets[ZONE_COLORWALL] = LoadTexture(ZONE_SHEETS_DIR "ColorWall.png");
-	ZoneSheets[ZONE_TELEPORTER] = LoadTexture(ZONE_SHEETS_DIR "Teleporter.png");
-	ZoneSheets[ZONE_CHECKPOINT] = LoadTexture(ZONE_SHEETS_DIR "CheckPoint.png");
-	ZoneSheets[ZONE_ENDPOINT] = LoadTexture(ZONE_SHEETS_DIR "EndPoint.png");
-	ZoneSheets[ZONE_KEYWALL] = LoadTexture(ZONE_SHEETS_DIR "KeyWall.png");
-	ZoneSheets[ZONE_TRIGGERPOINT] = LoadTexture(ZONE_SHEETS_DIR "TriggerPoint.png");
+	ZoneSheets[ZONE_WALL] = LoadTexture(ZONES_SHEETS_DIR "Wall.png");
+	ZoneSheets[ZONE_FAKEWALL] = LoadTexture(ZONES_SHEETS_DIR "FakeWall.png");
+	ZoneSheets[ZONE_DEATHWALL] = LoadTexture(ZONES_SHEETS_DIR "DeathWall.png");
+	ZoneSheets[ZONE_COLORWALL] = LoadTexture(ZONES_SHEETS_DIR "ColorWall.png");
+	ZoneSheets[ZONE_TELEPORTER] = LoadTexture(ZONES_SHEETS_DIR "Teleporter.png");
+	ZoneSheets[ZONE_CHECKPOINT] = LoadTexture(ZONES_SHEETS_DIR "CheckPoint.png");
+	ZoneSheets[ZONE_ENDPOINT] = LoadTexture(ZONES_SHEETS_DIR "EndPoint.png");
+	ZoneSheets[ZONE_KEYWALL] = LoadTexture(ZONES_SHEETS_DIR "KeyWall.png");
+	ZoneSheets[ZONE_TRIGGERPOINT] = LoadTexture(ZONES_SHEETS_DIR "TriggerPoint.png");
+
+	EntitySheet = LoadTexture(ENTITIES_SHEETS_DIR "Entities.png");
 
 	BrushButtonSheet = LoadTexture(UI_SHEETS_DIR "BrushButtons.png");
 }
@@ -32,6 +36,7 @@ void UnloadAssets() {
 	UnloadTexture(ZoneSheets[ZONE_ENDPOINT]);
 	UnloadTexture(ZoneSheets[ZONE_KEYWALL]);
 	UnloadTexture(ZoneSheets[ZONE_TRIGGERPOINT]);
+	UnloadTexture(EntitySheet);
 	UnloadTexture(BrushButtonSheet);
 }
 

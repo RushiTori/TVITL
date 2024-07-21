@@ -11,13 +11,21 @@ Player CreatePlayer(Vector2 pos_) {
 
 void DisplayPlayer(const Player* player) {
 	// WIP
+	static const Rectangle playerSource = (Rectangle){
+		.x = 0,
+		.y = 0,
+		.width = 32,
+		.height = 32,
+	};
 
-	Color playerCol;
-	playerCol.r = player->hasRed * 0xFF;
-	playerCol.g = player->hasGreen * 0xFF;
-	playerCol.b = player->hasBlue * 0xFF;
-	playerCol.a = 0xFF;
-	DrawRectangleV(player->pos, player->sizes, playerCol);
+	const Rectangle playerBody = (Rectangle){
+		.x = player->pos.x,
+		.y = player->pos.y,
+		.width = player->sizes.x,
+		.height = player->sizes.y,
+	};
+	
+	DrawTexturePro(EntitySheet, playerSource, playerBody, (Vector2){0}, 0, WHITE);
 }
 
 void UpdatePlayerInputs(Player* player) {
