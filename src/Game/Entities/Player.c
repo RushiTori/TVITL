@@ -11,8 +11,8 @@ Player CreatePlayer(Vector2 pos_) {
 
 void DisplayPlayer(const Player* player) {
 	// WIP
-	static const Rectangle playerSource = (Rectangle){
-		.x = 0,
+	Rectangle playerSource = (Rectangle){
+		.x = player->colors * 32,
 		.y = 0,
 		.width = 32,
 		.height = 32,
@@ -24,14 +24,14 @@ void DisplayPlayer(const Player* player) {
 		.width = player->sizes.x,
 		.height = player->sizes.y,
 	};
-	
+
 	DrawTexturePro(EntitySheet, playerSource, playerBody, (Vector2){0}, 0, WHITE);
 }
 
 void UpdatePlayerInputs(Player* player) {
-	if (IsKeyPressed(KEY_KP_1)) player->hasRed ^= true;
-	if (IsKeyPressed(KEY_KP_2)) player->hasGreen ^= true;
-	if (IsKeyPressed(KEY_KP_3)) player->hasBlue ^= true;
+	if (IsKeyPressed(KEY_KP_1)) player->colors = InverseColorStateR(player->colors);
+	if (IsKeyPressed(KEY_KP_2)) player->colors = InverseColorStateG(player->colors);
+	if (IsKeyPressed(KEY_KP_3)) player->colors = InverseColorStateB(player->colors);
 
 	player->vel = Vector2Zero();
 	if (IsKeyDown(KEY_LEFT)) player->vel.x = -1;
@@ -148,7 +148,7 @@ void CollidePlayerToOrbiter(Player* restrict player, const Orbiter* restrict orb
 		.height = player->sizes.y,
 	};
 
-	//Vector2 centerOffset = (Vector2){.x = cosf(orbiter->angle), .y = sinf(orbiter->angle)};
+	// Vector2 centerOffset = (Vector2){.x = cosf(orbiter->angle), .y = sinf(orbiter->angle)};
 	Vector2 centerOffset = (Vector2){.x = COS_TABLE[orbiter->angle], .y = SIN_TABLE[orbiter->angle]};
 	centerOffset = Vector2Scale(centerOffset, orbiter->offset);
 	Vector2 orbiterCenter = Vector2Add(orbiter->pos, centerOffset);

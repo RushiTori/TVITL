@@ -2,6 +2,7 @@
 #define PLAYER_H
 
 #include "Bullet.h"
+#include "ColorState.h"
 #include "Mover.h"
 #include "Movorbiter.h"
 #include "Orbiter.h"
@@ -14,10 +15,11 @@ typedef struct Player {
 	Vector2 pos;
 	Vector2 vel;
 	Vector2 sizes;
-	bool hasRed;
-	bool hasGreen;
-	bool hasBlue;
-	bool isDead;
+	union {
+		uint8_t playerStates;
+		ColorState colors : 3;
+		bool isDead : 1;
+	};
 } Player;
 
 Player CreatePlayer(Vector2 pos_);

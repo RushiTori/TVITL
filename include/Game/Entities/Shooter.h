@@ -2,6 +2,7 @@
 #define SHOOTER_H
 
 #include "Bullet.h"
+#include "ColorState.h"
 #include "Common.h"
 #include "EntityPath.h"
 
@@ -20,9 +21,7 @@ typedef struct Shooter {
 	float fireTimer;
 	float bulletSpeed;
 
-	bool hasRed;
-	bool hasGreen;
-	bool hasBlue;
+	ColorState colors;
 } Shooter;
 
 Shooter CreateShooter(Vector2 pos, float baseAngle, float angleSteps, uint32_t fireRate, float bulletSpeed);
