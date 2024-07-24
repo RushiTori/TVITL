@@ -10,13 +10,13 @@ Game CreateGame() {
 	InitGameCamera();
 
 	Game game = {0};
-	
+
 	game.player = CreatePlayer((Vector2){
 		.x = GetScreenWidth() * 0.5f,
 		.y = GetScreenHeight() * 0.5f,
 	});
 
-	game.state = Editing;
+	game.state = Playing;
 
 	game.editor = CreateEditor();
 
@@ -58,6 +58,7 @@ void UpdateGame(Game* game) {
 	// WIP
 	if (game->state == Playing) {
 		UpdateLevel(&game->currentLevel);
+		UpdateGameCamera(Vector2AddValue(game->player.pos, 0.5), PLAYER_SPEED * 1.25);
 	} else if (game->state == Editing) {
 		UpdateEditor(&game->editor);
 	}

@@ -9,7 +9,8 @@ int main(void) {
 	Game game = CreateGame();
 	game.editor.level.player = &game.player;
 	// EditLevel(&game.editor, "ressources/levels/Testings/thirdSave.dat");
-	CreateLevel(&game.editor, 64, 64);
+	 LoadLevel(&game, "ressources/levels/Testings/thirdSave.dat");
+	//CreateLevel(&game.editor, 64, 64);
 	// CreateLevel(&game.editor, 1024, 1024);
 	// CreateLevel(&game.editor, 8192, 8192);
 

@@ -6,6 +6,7 @@
 extern Camera2D gameCamera;
 
 void InitGameCamera();
+void UpdateGameCamera(Vector2 focusPoint, float maxPanSpeed);
 
 Rectangle GetWorldView();
 

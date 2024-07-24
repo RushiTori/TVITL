@@ -45,7 +45,7 @@ endif
 
 EXE_FLAGS := $(INC_PATHS) $(LIB_PATHS) $(LIB_FLAGS) $(STD_FLAGS) -O3 #-static #-mwindows 
 D_FLAGS   := $(INC_PATHS) $(LIB_PATHS) $(LIB_FLAGS) $(STD_FLAGS) -g 
-O_FLAGS   := $(INC_PATHS) $(STD_FLAGS) -O3
+O_FLAGS   := $(INC_PATHS) $(STD_FLAGS) -g #-O3
 
 # =========== Every usable functions ===========
 

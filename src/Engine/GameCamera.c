@@ -14,6 +14,21 @@ void InitGameCamera() {
 	gameCamera.target.y = GetScreenHeight() / 2;
 }
 
+void UpdateGameCamera(Vector2 focusPoint, float maxPanSpeed) {
+	// WIP
+	float d = Vector2Distance(focusPoint, gameCamera.target);
+
+
+	printf("{%.2f, %.2f}, {%.2f, %.2f} : %.2f\n", gameCamera.target.x, gameCamera.target.y, focusPoint.x, focusPoint.y, d);
+	if (d <= 2) {
+		SetCameraPosWorld(focusPoint);
+	} else {
+		d = Clamp(d * gameCamera.zoom, 2, WORLD_SCALE * 3) / (WORLD_SCALE * 3);
+		d *= d;
+		PanToWorld(focusPoint, max(2, d * maxPanSpeed));
+	}
+}
+
 Rectangle GetWorldView() {
 	Vector2 posA = GetScreenToGameWorld((Vector2){0});
 	Vector2 posB = GetScreenToGameWorld((Vector2){
